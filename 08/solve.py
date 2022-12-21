@@ -73,6 +73,8 @@ def count_trees_visible(treehouse,treeline,invert=False):
     # count=1
     # if(len(treeline) > 1):
     #     curr_tree_height=treeline[0]
+    #     if curr_tree_height >= treehouse:
+    #         return 1
     #     for newtree in treeline[1:]:
     #         if (newtree < curr_tree_height):
     #             break
