@@ -1,8 +1,7 @@
 f = open("data.txt", "r")
 monkey_setup=f.read().splitlines()
 
-#example_
-monkey_setup = [ \
+example_monkey_setup = [ \
 'Monkey 0:',
 '  Starting items: 79, 98',
 '  Operation: new = old * 19',
@@ -184,18 +183,60 @@ def do_monkey_round_2(monkeys):
                 monkey.pop('next_items', None)
     return monkeys
 
+# só precisamos saber se é divisivel pelos "divby"
+# se guardarmos apenas os items % prod(todos os divby)
+# mantemos os items pequenos e as operacoes soma, multiplicacao
+# e o teste divby todos continuam a funcionar.
+
+def do_monkey_round_3(monkeys, M = None):
+    if M is None:
+        M = math.prod([monkey["divby"] for monkey in monkeys])
+
+    for m, monkey in enumerate(monkeys):
+        #print("Monkey",m)
+        monkey["items"].reverse() #not required, just to make it similar to example
+        while monkey["items"]:
+            monkey["inspect_count"]+=1
+            item = monkey["items"].pop()
+            #print("  Monkey inspects an item with a worry level of ",item)
+            #print(monkey["op"])
+            _locals = {"old": item}
+            exec(monkey["op"], {}, _locals)
+            new_item = _locals["new"]
+            #print("  New worry level of item is ",new_item)
+            ##### Make our lives much easier #####
+            new_item = new_item%M
+            #print("  New worry level of item is ",new_item)
+            next_monkey = -1
+            if (new_item % monkey["divby"]) == 0:
+                next_monkey = monkey["tmonkey"]
+            else:
+                next_monkey = monkey["fmonkey"]
+            #print("  Next monkey is:",next_monkey)
+            if "next_items" in monkeys[next_monkey].keys():
+                monkeys[next_monkey]["next_items"].append(new_item)
+            else:
+                monkeys[next_monkey]["next_items"] = [new_item]
+        for monkey in monkeys:
+            if "next_items" in monkey.keys():
+                monkey["items"] += monkey["next_items"]
+                monkey.pop('next_items', None)
+    return monkeys
+
 monkeys = read_monkey_setup(monkey_setup)
 #monkeys = change_items_to_factors(monkeys)
+M = math.prod([monkey["divby"] for monkey in monkeys])
+
 print(monkeys)
-for round_index in range(1000):
+for round_index in range(10000):
     print("### Round",round_index+1,"###")
     #monkeys = do_monkey_round_2(monkeys)
-    monkeys = do_monkey_round(monkeys,very_worried=True)
+    monkeys = do_monkey_round_3(monkeys,M)
     for m, monkey in enumerate(monkeys):
         print("Monkey",m,":",monkey["inspect_count"])
         pass
 
-# monkey_scores = sorted([monkey["inspect_count"] for monkey in monkeys])
-# print(monkey_scores)
-# monkey_scores.reverse()
-# print("Part 2:", monkey_scores[0]*monkey_scores[1])
+monkey_scores = sorted([monkey["inspect_count"] for monkey in monkeys])
+print(monkey_scores)
+monkey_scores.reverse()
+print("Part 2:", monkey_scores[0]*monkey_scores[1])
